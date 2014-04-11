@@ -11,6 +11,13 @@
       gutter = document.getElementById('calendar-gutter'),
       minutesToPixelsRatio = 1.1;
 
+  function isCollision (eventA, eventB) {
+    if(eventB.start > eventA.end || eventB.end < eventA.start ){
+      return false;
+    }
+    return true;
+  }
+
   // Creates the gutter on the side of the calendar that displays
   // the times ranging from 9 am to 9 pm
   function renderCalendarGutter () {
@@ -52,6 +59,8 @@
       calendarItem.className = 'calendar-event';
       calendarItem.innerHTML = '<h2 class="event-title">Sample Item ' + i + '</h2><p class="event-location">Sample Location</p>';
       calendarItem.style.top = (events[i].start * minutesToPixelsRatio) + 'px';
+      calendarItem.style.width = events[i].width * 100 + '%';
+      calendarItem.style.left = events[i].left + 'px';
       var dif = events[i].end - events[i].start;
       // console.log(dif);
       calendarItem.style.height = (dif * minutesToPixelsRatio) + 4 + 'px';
@@ -62,50 +71,27 @@
   }
 
   function layOutDay(events) {
-    /*
-    Need to go through each event and check for collision groups.
-    Collision groups will share the same width.
-     */
-
-    /*
-    Collision Group
-    [{
-      width: x,
-      height: x,
-      left: x
-    }]
-
-    Basic algorithm:
-      For every event in the collection of events:
-        check against every other event, if colliding:
-          add to a collision group
-     */
-
-    //TODO: Only check collisions once
-    //      e.g. A<->B = B<->A
-
-    for(var i =0 ; i < events.length ; i++) {
-      for (var j = events.length - 1; j >= 0; j--) {
+    var collisions;
+    for (var i = 0 ; i < events.length - 1 ; i++) {
+      collisions = [events[i]];
+      for (var j = i + 1 ; j < events.length ; j++) {
         if(events[i] !== events[j]) {
           if(isCollision(events[i], events[j])){
+            collisions.push(events[j]);
             console.log('collision between ' + i + ' ' + j);
           }
         }
-      };
+      }
+      if(collisions.length > 1){
+        console.log(i);
+        console.log(collisions);
+      }
+      for (var k = 0; k < collisions.length ; k++) {
+        collisions[k].width = 1/collisions.length;
+      }
       console.log(events[i]);
     }
     renderGroup(events);
-  }
-
-  function isCollision (eventA, eventB) {
-    if(eventB.start > eventA.end || eventB.end < eventA.start ){
-      return false;
-    }
-    return true;
-  }
-
-  function renderCollisionGroup (events) {
-
   }
 
 
