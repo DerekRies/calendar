@@ -137,9 +137,10 @@ body {
     float: left;
     /*background: red;*/
     height: 100%;
-    width: 890px;
+    width: 620px;
     margin-left: 10px;
     margin-top: 10px;
+    padding: 0 10px;
     /*padding: 0 10px;*/
     border-left: 2px solid #CCC;
     box-sizing: border-box;
@@ -152,7 +153,7 @@ body {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     margin: 0 auto;
-    width: 97%;
+    /*width: 97%;*/
     height: 100%;
     position: relative;
 }
@@ -192,10 +193,13 @@ body {
     font-size: 14px;
     margin: 0;
     padding: 0;
+    color: #5280D8;
 }
 
 .event-location {
     font-size: 11px;
+    margin-top:0px;
+    color: #666;
 }
 
 
