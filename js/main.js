@@ -9,7 +9,7 @@
 
   var canvas = document.getElementById('calendar-canvas'),
       gutter = document.getElementById('calendar-gutter'),
-      minutesToPixelsRatio = 1.1;
+      minutesToPixelsRatio = 0.995;
 
   function isCollision (eventA, eventB) {
     if(eventB.start > eventA.end || eventB.end < eventA.start ){
