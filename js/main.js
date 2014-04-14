@@ -66,6 +66,7 @@
   Layout (sizing and placement) is handled in the layout function.
    */
   function renderGroup (events) {
+    canvas.innerHTML = '';
     var fragment = document.createElement('div');
     fragment.className = 'calendar-canvas-container';
     for(var i = 0; i < events.length ; i++) {
@@ -82,30 +83,6 @@
       // console.log(events[i]);
     }
     canvas.appendChild(fragment);
-  }
-
-  function layOutDay(events) {
-    var collisions;
-    for (var i = 0 ; i < events.length - 1 ; i++) {
-      collisions = [events[i]];
-      for (var j = i + 1 ; j < events.length ; j++) {
-        if(events[i] !== events[j]) {
-          if(isCollision(events[i], events[j])){
-            collisions.push(events[j]);
-            console.log('collision between ' + i + ' ' + j);
-          }
-        }
-      }
-      if(collisions.length > 1){
-        console.log(i);
-        console.log(collisions);
-      }
-      for (var k = 0; k < collisions.length ; k++) {
-        collisions[k].width = 1/collisions.length;
-      }
-      console.log(events[i]);
-    }
-    renderGroup(events);
   }
 
   function buildGraph (events) {
@@ -180,7 +157,7 @@
     // then set all connected nodes to same width and position off left
   }
 
-  function ld (events) {
+  function layOutDay (events) {
     var graph = buildGraph(events);
     layoutPass(graph);
     console.log(graph);
@@ -191,8 +168,7 @@
 
   renderCalendarGutter();
   // layOutDay(testEvents);
-  // ld(testEvents);
-  ld(testEvents2);
+  layOutDay(testEvents2);
 
   window.layOutDay = layOutDay;
 
