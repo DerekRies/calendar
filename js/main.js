@@ -94,9 +94,28 @@
     renderGroup(events);
   }
 
+  function buildGraph (events) {
+    var graph = new Graph();
+    for (var i = 0; i < events.length; i++) {
+      graph.addNode(events[i]);
+    };
+    return graph;
+  }
+
+  function layoutPass (graph) {
+
+  }
+
+  function ld (events) {
+    var graph = buildGraph(events);
+    layoutPass(graph);
+    console.log(graph);
+  }
+
 
   renderCalendarGutter();
-  layOutDay(testEvents);
+  // layOutDay(testEvents);
+  ld(testEvents);
 
   window.layOutDay = layOutDay;
 
