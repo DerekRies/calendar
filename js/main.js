@@ -17,6 +17,7 @@
     {start: 400, end: 460},
     {start: 420, end: 490},
     {start: 440, end: 510},
+    {start: 455, end: 550},
     // {start: 450, end: 540},
   ];
 
@@ -148,15 +149,16 @@
     // console.log(reachableNodes);
     reachableNodes[0].data.left = 0;
     for (var h = 1; h < reachableNodes.length; h++) {
-      var neighborsLeft = _.map(reachableNodes[h].neighbors, function (node) {
+      var neighborsData = _.map(reachableNodes[h].neighbors, function (node) {
         return node.data;
       });
-      console.log(neighborsLeft);
-      if(_.some(neighborsLeft,{'left': 0}) === false) {
+      console.log(neighborsData);
+      if(_.some(neighborsData,{'left': 0}) === false) {
         reachableNodes[h].data.left = 0;
       }
       else {
-        reachableNodes[h].data.left = offset;
+        console.log();
+        reachableNodes[h].data.left = _.max(neighborsData, 'left').left + offset;
       }
     };
   }
