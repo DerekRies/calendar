@@ -7,6 +7,18 @@
     {start: 610, end: 670},
   ];
 
+  var testEvents2 = [
+    // {start: 30, end: 150},
+    {start: 180, end: 210},
+    {start: 200, end: 310},
+    {start: 270, end: 290},
+    {start: 305, end: 330},
+    {start: 325, end: 410},
+    {start: 400, end: 460},
+    {start: 420, end: 490},
+    {start: 440, end: 510},
+  ];
+
   var canvas = document.getElementById('calendar-canvas'),
       gutter = document.getElementById('calendar-gutter'),
       minutesToPixelsRatio = 0.995;
@@ -102,20 +114,57 @@
     return graph;
   }
 
-  function layoutPass (graph) {
+  function findMostConnections (node) {
+    var visitedNodes = [node],
+        mostConnections = 0,
+        curNode = node,
+        prevNode = node;
+    // Go through each node
+    // how many neighbors?
+    // how many of those neighbors are shared neighbors
+    // (all colliding with each other)
+    while(true) {
+      if(curNode.neighbors.length === 1) {
+        if(mostConnections < 1) {
+          mostConnections = 1;
+        }
+        prevNode = curNode;
+        curNode = curNode.neighbors[0];
+      }
+      else {
+        break;
+      }
+    }
+  }
 
+  function layoutPass (graph) {
+    for(var i = 0; i < graph.nodes.length ; i++) {
+      // if no neighbors then its simply 100% width
+      if(graph.nodes[i].neighbors.length === 0){
+        graph.nodes[i].data.width = 100;
+        graph.nodes[i].data.left = 0;
+      }
+      else {
+        // Go through the graph to find the most connected point.
+        // mostConnections = findMostConnections(graph.nodes[i]);
+        console.log(graph.nodes[i].sharedNeighbors());
+      }
+    }
+    // then set all connected nodes to same width and position off left
   }
 
   function ld (events) {
     var graph = buildGraph(events);
     layoutPass(graph);
     console.log(graph);
+    window.g = graph;
   }
 
 
   renderCalendarGutter();
   // layOutDay(testEvents);
-  ld(testEvents);
+  // ld(testEvents);
+  ld(testEvents2);
 
   window.layOutDay = layOutDay;
 

@@ -1,3 +1,5 @@
+var alphabet = ['a','b','c','d','e','f','g','h','i','j'];
+
 var Node = function (data) {
   this._id = 0;
   this.data = data;
@@ -5,7 +7,28 @@ var Node = function (data) {
 };
 
 Node.prototype.sharesEdgeWith = function(node) {
-  return this.neighbors.indexOf(node);
+  if(this.neighbors.indexOf(node) !== -1){
+    return true;
+  }
+  return false;
+};
+
+Node.prototype.sharedNeighbors = function() {
+  // returns a list of this nodes neighbors that are also
+  // neighbors with each other
+  var shared = [];
+  if(this.neighbors.length < 2) {
+    return shared;
+  }
+
+  for(var i = 0; i < this.neighbors.length - 1 ; i++) {
+    for(var j = i + 1 ; j < this.neighbors.length ; j++) {
+      if(this.neighbors[i].sharesEdgeWith(this.neighbors[j])) {
+        shared.push(this.neighbors[i], this.neighbors[j]);
+      }
+    }
+  }
+  return shared;
 };
 
 Node.prototype.isCollidingWith = function(nodeB) {
@@ -42,7 +65,7 @@ Graph.prototype.addEdge = function(nodeA, nodeB) {
 Graph.prototype.addNode = function(item) {
   // body...
   var node = new Node(item);
-  node._id = this.count++;
+  node._id = alphabet[this.count++];
   this.updateEdgesForNode(node);
   this.nodes.push(node);
 };
