@@ -8,15 +8,16 @@
   ];
 
   var testEvents2 = [
-    // {start: 30, end: 150},
-    {start: 180, end: 210},
+    {start: 30, end: 150},
+    {start: 170, end: 220},
     {start: 200, end: 310},
-    {start: 270, end: 290},
-    {start: 305, end: 330},
+    {start: 240, end: 290},
+    {start: 305, end: 360},
     {start: 325, end: 410},
     {start: 400, end: 460},
     {start: 420, end: 490},
     {start: 440, end: 510},
+    // {start: 450, end: 540},
   ];
 
   var canvas = document.getElementById('calendar-canvas'),
@@ -71,7 +72,7 @@
       calendarItem.className = 'calendar-event';
       calendarItem.innerHTML = '<h2 class="event-title">Sample Item ' + i + '</h2><p class="event-location">Sample Location</p>';
       calendarItem.style.top = (events[i].start * minutesToPixelsRatio) + 'px';
-      calendarItem.style.width = events[i].width * 100 + '%';
+      calendarItem.style.width = events[i].width * 600 + 'px';
       calendarItem.style.left = events[i].left + 'px';
       var dif = events[i].end - events[i].start;
       // console.log(dif);
@@ -114,40 +115,64 @@
     return graph;
   }
 
-  function findMostConnections (node) {
-    var visitedNodes = [node],
-        mostConnections = 0,
-        curNode = node,
-        prevNode = node;
-    // Go through each node
-    // how many neighbors?
-    // how many of those neighbors are shared neighbors
-    // (all colliding with each other)
-    while(true) {
-      if(curNode.neighbors.length === 1) {
-        if(mostConnections < 1) {
-          mostConnections = 1;
-        }
-        prevNode = curNode;
-        curNode = curNode.neighbors[0];
-      }
-      else {
-        break;
+  function layoutGroup (node) {
+    var reachableNodes = node.getAllReachableNodes();
+    if(reachableNodes[0].measured) {
+      return;
+    }
+    // sort by start time
+    reachableNodes = _.sortBy(reachableNodes, function (node) {
+      return node.data.start;
+    });
+    console.log(reachableNodes);
+    var nConnections = 0;
+    var maxConnections = 0;
+    var width = 1;
+    var offset;
+    // find out the most collisions to determine width
+    for(var i = 0; i < reachableNodes.length ;i++) {
+      nConnections = reachableNodes[i].sharedNeighbors().length + 1;
+      if(nConnections > maxConnections) {
+        maxConnections = nConnections;
       }
     }
+    width = 1 / maxConnections;
+    offset = 600 * width;
+    // set the width of all nodes
+    for (var j = reachableNodes.length - 1; j >= 0; j--) {
+      reachableNodes[j].data.width = width;
+      reachableNodes[j].measured = true;
+    };
+
+    // set the left position of all nodes
+    // console.log(reachableNodes);
+    reachableNodes[0].data.left = 0;
+    for (var h = 1; h < reachableNodes.length; h++) {
+      var neighborsLeft = _.map(reachableNodes[h].neighbors, function (node) {
+        return node.data;
+      });
+      console.log(neighborsLeft);
+      if(_.some(neighborsLeft,{'left': 0}) === false) {
+        reachableNodes[h].data.left = 0;
+      }
+      else {
+        reachableNodes[h].data.left = offset;
+      }
+    };
   }
 
   function layoutPass (graph) {
     for(var i = 0; i < graph.nodes.length ; i++) {
       // if no neighbors then its simply 100% width
       if(graph.nodes[i].neighbors.length === 0){
-        graph.nodes[i].data.width = 100;
+        graph.nodes[i].data.width = 1;
         graph.nodes[i].data.left = 0;
       }
       else {
-        // Go through the graph to find the most connected point.
-        // mostConnections = findMostConnections(graph.nodes[i]);
-        console.log(graph.nodes[i].sharedNeighbors());
+        // need to find a way to avoid calling this on the same group over
+        // and over because each node is stored in the adjacency list
+        // regardless of whether or not its part of a collision group
+        layoutGroup(graph.nodes[i]);
       }
     }
     // then set all connected nodes to same width and position off left
@@ -157,6 +182,7 @@
     var graph = buildGraph(events);
     layoutPass(graph);
     console.log(graph);
+    renderGroup(events);
     window.g = graph;
   }
 

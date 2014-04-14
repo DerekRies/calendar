@@ -17,14 +17,23 @@ Node.prototype.sharedNeighbors = function() {
   // returns a list of this nodes neighbors that are also
   // neighbors with each other
   var shared = [];
-  if(this.neighbors.length < 2) {
+  if(this.neighbors.length < 1) {
+    return shared;
+  }
+  else if(this.neighbors.length === 1) {
+    shared.push(this.neighbors[0]);
     return shared;
   }
 
   for(var i = 0; i < this.neighbors.length - 1 ; i++) {
     for(var j = i + 1 ; j < this.neighbors.length ; j++) {
       if(this.neighbors[i].sharesEdgeWith(this.neighbors[j])) {
-        shared.push(this.neighbors[i], this.neighbors[j]);
+        if(shared.indexOf(this.neighbors[i] )=== -1){
+          shared.push(this.neighbors[i]);
+        }
+        if(shared.indexOf(this.neighbors[j]) === -1){
+          shared.push(this.neighbors[j]);
+        }
       }
     }
   }
@@ -43,6 +52,31 @@ Node.prototype.addNeighbor = function(node) {
     this.neighbors.push(node);
   }
 };
+
+Node.prototype.getAllReachableNodes = function() {
+  if(this.neighbors.length === 0) {
+    return [this];
+  }
+  var reachable = [];
+  var open = [];
+  var closed = [];
+  var curNode = this;
+  open.push(curNode);
+  while(open.length > 0){
+    closed.push(curNode);
+    for(var i = 0; i < curNode.neighbors.length ; i++) {
+      if(closed.indexOf(curNode.neighbors[i]) === -1) {
+        open.push(curNode.neighbors[i]);
+      }
+      if(reachable.indexOf(curNode.neighbors[i]) === -1){
+        reachable.push(curNode.neighbors[i]);
+      }
+    }
+    curNode = open.shift();
+  }
+  return reachable;
+};
+
 
 var Graph = function () {
   this.nodes = [];
@@ -68,4 +102,30 @@ Graph.prototype.addNode = function(item) {
   node._id = alphabet[this.count++];
   this.updateEdgesForNode(node);
   this.nodes.push(node);
+};
+
+Graph.prototype.getAllNodesReachableFrom = function(node) {
+  // returns all nodes that can be reached starting from
+  // the node provided as an argument to this method
+  if(node.neighbors.length === 0) {
+    return [node];
+  }
+  var reachable = [];
+  var open = [];
+  var closed = [];
+  var curNode = node;
+  open.push(curNode);
+  while(open.length > 0){
+    closed.push(curNode);
+    for(var i = 0; i < curNode.neighbors.length ; i++) {
+      if(closed.indexOf(curNode.neighbors[i]) === -1) {
+        open.push(curNode.neighbors[i]);
+      }
+      if(reachable.indexOf(curNode.neighbors[i]) === -1){
+        reachable.push(curNode.neighbors[i]);
+      }
+    }
+    curNode = open.shift();
+  }
+  return reachable;
 };
