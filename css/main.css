@@ -99,7 +99,7 @@ textarea {
 
 body {
     margin: 0 10px;
-    font-family: 'lucida grande', tahoma, verdana, arial, sans-serif;
+    font-family: "Lucida Grande", tahoma, verdana, arial, sans-serif;
 }
 
 
@@ -119,12 +119,13 @@ body {
 
 #calendar {
     /*background: red;*/
-    width: 1000px;
-    height: 800px;
+    width: 730px;
+    height: 720px;
+    margin: 0 auto;
 }
 
 #calendar-gutter {
-    width: 100px;
+    width: 80px;
     height: 100%;
     float: left;
     position: relative;
@@ -134,7 +135,7 @@ body {
 }
 
 #calendar-canvas {
-    background: #ebebeb;
+    background: #ececec;
     float: left;
     /*background: red;*/
     /*height: 100%;*/
@@ -162,7 +163,7 @@ body {
 
 .time {
     color: #AAA;
-    font-size: 11px;
+    font-size: 10px;
     position: absolute;
     width: 100%;
     text-align: right;
@@ -175,7 +176,7 @@ body {
 .big-time {
     color: #777;
     font-weight: bold;
-    font-size: 15px;
+    font-size: 14px;
     padding-top: 0px;
 }
 
@@ -188,7 +189,7 @@ body {
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
-    padding: 10px;
+    padding: 10px 10px 10px 15px;
     width: 100%;
 }
 

@@ -23,7 +23,7 @@
 
   var canvas = document.getElementById('calendar-canvas'),
       gutter = document.getElementById('calendar-gutter'),
-      minutesToPixelsRatio = 0.995;
+      minutesToPixelsRatio = 1;
 
   function isCollision (eventA, eventB) {
     if(eventB.start > eventA.end || eventB.end < eventA.start ){
@@ -72,13 +72,13 @@
     for(var i = 0; i < events.length ; i++) {
       var calendarItem = document.createElement('div');
       calendarItem.className = 'calendar-event';
-      calendarItem.innerHTML = '<h2 class="event-title">Sample Item ' + i + '</h2><p class="event-location">Sample Location</p>';
+      calendarItem.innerHTML = '<h2 class="event-title">Sample Item</h2><p class="event-location">Sample Location</p>';
       calendarItem.style.top = (events[i].start * minutesToPixelsRatio) + 'px';
       calendarItem.style.width = events[i].width * 600 + 'px';
       calendarItem.style.left = events[i].left + 'px';
       var dif = events[i].end - events[i].start;
       // console.log(dif);
-      calendarItem.style.height = (dif * minutesToPixelsRatio) + 4 + 'px';
+      calendarItem.style.height = (dif * minutesToPixelsRatio) + 'px';
       fragment.appendChild(calendarItem);
       // console.log(events[i]);
     }
@@ -167,8 +167,8 @@
 
 
   renderCalendarGutter();
-  // layOutDay(testEvents);
-  layOutDay(testEvents2);
+  layOutDay(testEvents);
+  // layOutDay(testEvents2);
 
   window.layOutDay = layOutDay;
 
