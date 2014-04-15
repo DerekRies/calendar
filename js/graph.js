@@ -103,29 +103,3 @@ Graph.prototype.addNode = function(item) {
   this.updateEdgesForNode(node);
   this.nodes.push(node);
 };
-
-Graph.prototype.getAllNodesReachableFrom = function(node) {
-  // returns all nodes that can be reached starting from
-  // the node provided as an argument to this method
-  if(node.neighbors.length === 0) {
-    return [node];
-  }
-  var reachable = [];
-  var open = [];
-  var closed = [];
-  var curNode = node;
-  open.push(curNode);
-  while(open.length > 0){
-    closed.push(curNode);
-    for(var i = 0; i < curNode.neighbors.length ; i++) {
-      if(closed.indexOf(curNode.neighbors[i]) === -1) {
-        open.push(curNode.neighbors[i]);
-      }
-      if(reachable.indexOf(curNode.neighbors[i]) === -1){
-        reachable.push(curNode.neighbors[i]);
-      }
-    }
-    curNode = open.shift();
-  }
-  return reachable;
-};

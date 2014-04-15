@@ -7,6 +7,21 @@
     {start: 610, end: 670},
   ];
 
+  var testEvents3 = [
+    {start: 30, end: 400},
+    {start: 50, end: 400},
+    {start: 70, end: 400},
+    {start: 90, end: 400},
+    {start: 110, end: 400},
+    {start: 130, end: 400},
+    {start: 150, end: 400},
+    {start: 170, end: 400},
+    {start: 190, end: 420},
+    {start: 230, end: 440},
+    {start: 250, end: 500},
+    {start: 470, end: 540},
+  ];
+
   var testEvents2 = [
     {start: 30, end: 150},
     {start: 170, end: 220},
@@ -17,26 +32,19 @@
     {start: 400, end: 460},
     {start: 420, end: 490},
     {start: 440, end: 510},
-    {start: 455, end: 550},
-    // {start: 450, end: 540},
+    {start: 550, end: 640},
+    {start: 650, end: 700},
+    {start: 670, end: 720},
   ];
 
   var canvas = document.getElementById('calendar-canvas'),
       gutter = document.getElementById('calendar-gutter'),
       minutesToPixelsRatio = 1;
 
-  function isCollision (eventA, eventB) {
-    if(eventB.start > eventA.end || eventB.end < eventA.start ){
-      return false;
-    }
-    return true;
-  }
-
   // Creates the gutter on the side of the calendar that displays
   // the times ranging from 9 am to 9 pm
   function renderCalendarGutter () {
     var allTimesDOM = document.createElement('div');
-    console.log('rendering the calendar gutter');
     for(var i = 0 ; i < 25 ; i++) {
       var timeDOM = document.createElement('div');
       timeDOM.className = 'time';
@@ -102,20 +110,26 @@
     reachableNodes = _.sortBy(reachableNodes, function (node) {
       return node.data.start;
     });
-    console.log(reachableNodes);
     var nConnections = 0;
     var maxConnections = 0;
+    var maxC = [];
     var width = 1;
     var offset;
+
     // find out the most collisions to determine width
     for(var i = 0; i < reachableNodes.length ;i++) {
-      nConnections = reachableNodes[i].sharedNeighbors().length + 1;
+      var sharedNeighbors = reachableNodes[i].sharedNeighbors()
+      nConnections = sharedNeighbors.length + 1;
       if(nConnections > maxConnections) {
         maxConnections = nConnections;
+        maxC = sharedNeighbors;
       }
     }
+    console.log(maxConnections);
+    console.log(maxC);
     width = 1 / maxConnections;
     offset = 600 * width;
+
     // set the width of all nodes
     for (var j = reachableNodes.length - 1; j >= 0; j--) {
       reachableNodes[j].data.width = width;
@@ -123,19 +137,27 @@
     };
 
     // set the left position of all nodes
-    // console.log(reachableNodes);
     reachableNodes[0].data.left = 0;
     for (var h = 1; h < reachableNodes.length; h++) {
       var neighborsData = _.map(reachableNodes[h].neighbors, function (node) {
         return node.data;
       });
-      console.log(neighborsData);
+      // There's room to put this event on the left
+      // Doesn't take into account room on the left, after the first slot
+      // (the first slot being a left of 0)
       if(_.some(neighborsData,{'left': 0}) === false) {
         reachableNodes[h].data.left = 0;
       }
+      // This node's neighbors are pushing it further to the right
       else {
         console.log();
-        reachableNodes[h].data.left = _.max(neighborsData, 'left').left + offset;
+        var maxOffset = _.max(neighborsData, 'left').left;
+        if(maxOffset + offset <= 600) {
+          reachableNodes[h].data.left = maxOffset + offset;
+        }
+        else{
+          reachableNodes[h].data.left = 0;
+        }
       }
     };
   }
@@ -148,16 +170,15 @@
         graph.nodes[i].data.left = 0;
       }
       else {
-        // need to find a way to avoid calling this on the same group over
-        // and over because each node is stored in the adjacency list
-        // regardless of whether or not its part of a collision group
         layoutGroup(graph.nodes[i]);
       }
     }
-    // then set all connected nodes to same width and position off left
   }
 
   function layOutDay (events) {
+    _.sortBy(events, function (e) {
+      return e.start;
+    });
     var graph = buildGraph(events);
     layoutPass(graph);
     console.log(graph);
@@ -168,8 +189,32 @@
 
   renderCalendarGutter();
   layOutDay(testEvents);
-  // layOutDay(testEvents2);
+  // layOutDay(testEvents3);
+
+  function generateTestEvents (n) {
+    var events = [];
+    if(typeof n === 'undefined') {
+      n = Math.floor(Math.random()*100);
+    }
+
+    function generateEvent () {
+      var e = {};
+      var height = Math.random() * 200
+      e.start = Math.random() * (720 - height);
+      e.end =  height + e.start;
+      return e;
+    }
+
+    for (var i = 0; i < n; i++) {
+      events.push(generateEvent());
+    }
+
+    return events;
+  }
+
+  // layOutDay(generateTestEvents(10));
 
   window.layOutDay = layOutDay;
+  window.generateTestEvents = generateTestEvents;
 
 }());
