@@ -188,8 +188,8 @@
 
 
   renderCalendarGutter();
-  layOutDay(testEvents);
-  // layOutDay(testEvents3);
+  // layOutDay(testEvents);
+  layOutDay(testEvents2);
 
   function generateTestEvents (n) {
     var events = [];
