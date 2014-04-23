@@ -199,7 +199,7 @@
 
     function generateEvent () {
       var e = {};
-      var height = Math.random() * 200
+      var height = Math.random() * 100 + 50;
       e.start = Math.random() * (720 - height);
       e.end =  height + e.start;
       return e;
