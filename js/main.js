@@ -153,31 +153,59 @@
     var groupWidth = .5;
     var maxOffset = 0;
     var offset = 0;
+    var isStrong = false;
+
+    // Sizing
     if(events.length === 1) {
       groupWidth = 1;
     }
     else if(events.length > 2) {
-      // get biggest strong cycle for this component
-      // because that will determine the width
-      // any of the component vertices in the strong Cycle?
-
-
+      // get biggest strong cycle for this component to determine the width
       for (var i = 0; i < strongCycles.length; i++) {
         if (_.intersection(strongCycles[i], component).length > 0) {
+          isStrong = true;
           groupWidth = 1 / strongCycles[i].length;
         };
       };
     }
 
+    // Positioning
     maxOffset = (1 / groupWidth) - 1;
-    _.each(events, function (e) {
-      e.width = groupWidth;
-      e.left = offset;
-      if(offset < maxOffset) {
-        offset++;
+    var checked = [];
+
+    function positionNode (vertex, offset) {
+      checked.push(vertex);
+      var node = g.getById(vertex);
+      var adj = g.adj(vertex);
+      var newOffset = offset;
+      node.left = offset;
+      if(offset < maxOffset){
+        newOffset++;
       }
       else {
-        offset = 0;
+        newOffset = 0;
+      }
+      _.each(adj, function (v) {
+        if(!_.contains(checked, v)){
+          positionNode(v, newOffset);
+        }
+      });
+    }
+
+    if(!isStrong){
+      positionNode(component[0], 0);
+    }
+
+    _.each(events, function (e) {
+      e.width = groupWidth;
+      if(isStrong){
+        e.left = offset;
+        if(offset < maxOffset) {
+          offset++;
+        }
+        else {
+          offset = 0;
+        }
       }
     });
   }
