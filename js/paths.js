@@ -76,11 +76,19 @@
   };
 
 
-  var CC = function (graph) {
+  var GraphProcessor = function (graph) {
+    // Handles Connectivity, Cycles, and strongly connected cycles
+    this.update(graph);
+  };
+
+  GraphProcessor.prototype.update = function(graph) {
+    // body...
     this.marked = makeArray(graph.verts(), false);
     this.id = makeArray(graph.verts(), undefined);
+    this.edgeTo = makeArray(graph.verts(), undefined);
     this.count = 0;
     this.graph = graph;
+    this.cycles = [];
 
     for (var v = 0; v < graph.verts(); v++) {
       if(!this.marked[v]) {
@@ -88,25 +96,90 @@
         this.count++;
       }
     };
+
+    this.cycles = _.filter(this.cycles, function (cycle) {
+      return cycle.length > 1;
+    });
   };
 
-  CC.prototype._dfs = function(g, v) {
+  GraphProcessor.prototype._dfs = function(g, v) {
     this.marked[v] = true;
     this.id[v] = this.count;
     _.each(g.adj(v), function (w) {
       if(!this.marked[w]){
         this._dfs(g, w);
+        this.edgeTo[w] = v;
+      }
+      else {
+        this.cycles.push(this.makeCycle(w));
       }
     }, this);
   };
 
-  CC.prototype.connected = function(v, w) {
-    // Are the v and w vertices connected
-    return this.id[v] === this.id[w];
-    return false;
+  GraphProcessor.prototype.isStrongCycle = function(cycle) {
+    // Every vertex in the cycle shares an edge with every
+    // other vertex in the cycle
+    var g = this.graph;
+    return _.every(cycle, function (v) {
+      var edges = _.union(g.adj(v), [v]);
+      var edgesAndCycle = _.union(edges, cycle);
+      // If the unioned edgesAndCycles length is longer than the edges
+      // list, then that means that the cycle contains a vertex not found
+      // in the edges list, and the cycle is not strongly connected
+      return edges.length === edgesAndCycle.length;
+    });
   };
 
-  CC.prototype.components = function() {
+  GraphProcessor.prototype.getStrongCycles = function() {
+    var strongCycles = [];
+    _.each(this.cycles, function (cycle) {
+      if(this.isStrongCycle(cycle)){
+        strongCycles.push(cycle);
+      }
+    }, this);
+
+    return strongCycles;
+  };
+
+  GraphProcessor.prototype.getLargestStrongCycles = function() {
+    // should only return the largest possible cycles
+    // (no sub-cycles, cycles that are subsets of other cycles)
+    function containedWithin (cycle, cycles, ignoreIndex) {
+      for (var x = 0; x < cycles.length; x++) {
+        if(x !== ignoreIndex && cycle.length < cycles[x].length) {
+          if(cycles[x].length === _.union(cycles[x], cycle).length) {
+            return true;
+          }
+        }
+      };
+      return false;
+    }
+    var strongCycles = this.getStrongCycles();
+    var cs = [];
+    for (var i = 0; i < strongCycles.length; i++) {
+      var a = strongCycles[i];
+      // console.log(a, containedWithin(a, strongCycles, i));
+      if(!containedWithin(a, strongCycles, i)) {
+        cs.push(a);
+      }
+    };
+    return cs;
+  };
+
+  GraphProcessor.prototype.makeCycle = function(w) {
+    var cycle = [];
+    for(var v = w ; v !== undefined ; v = this.edgeTo[v]) {
+      cycle.push(v);
+    }
+    return cycle;
+  };
+
+  GraphProcessor.prototype.connected = function(v, w) {
+    // Are the v and w vertices connected
+    return this.id[v] === this.id[w];
+  };
+
+  GraphProcessor.prototype.components = function() {
     var c = this.count;
     var components = Array.apply(null, Array(c)).map(function(){return [];});
     for(var v = 0 ; v < this.id.length ; v++) {
@@ -118,5 +191,5 @@
 
   window.Graph.BFSPaths = bfsPaths;
   window.Graph.DFSPaths = dfsPaths;
-  window.Graph.ConnectedComponents = CC;
+  window.Graph.GraphProcessor = GraphProcessor;
 }());

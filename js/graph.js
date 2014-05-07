@@ -17,6 +17,9 @@
 
   Graph.prototype.removeEdge = function(v, w) {
     // body...
+    console.log('disconnect: ' + v + '-' + w);
+    _.remove(this.adjacencyList[v], function (n) { return n === w; });
+    _.remove(this.adjacencyList[w], function (n) { return n === v; });
   };
 
   Graph.prototype.adj = function(v) {

@@ -37,9 +37,27 @@
     {start: 670, end: 720},
   ];
 
+  var testEvents3 = [
+    {start: 30, end: 150},
+    {start: 170, end: 220},
+    {start: 200, end: 310},
+    {start: 240, end: 290},
+    {start: 305, end: 360},
+    {start: 325, end: 410},
+    {start: 400, end: 460},
+    {start: 420, end: 490},
+    {start: 440, end: 510},
+    {start: 450, end: 520},
+    {start: 470, end: 535},
+    {start: 550, end: 640},
+    {start: 650, end: 700},
+    {start: 670, end: 720},
+  ];
+
   var canvas = document.getElementById('calendar-canvas'),
       gutter = document.getElementById('calendar-gutter'),
-      minutesToPixelsRatio = 1;
+      minutesToPixelsRatio = 1,
+      g;
 
   // Creates the gutter on the side of the calendar that displays
   // the times ranging from 9 am to 9 pm
@@ -126,16 +144,23 @@
     return graph;
   }
 
-  function layoutGroup (events) {
+  function layoutGroup (component, strongCycles) {
     // a single connected component of the graph of events
     // all events in the component will share the same width
     // width is determined by the size of the
+    var events = g.idsToData(component);
+    console.log(events, component);
     var groupWidth = .5;
     var maxOffset = 0;
     var offset = 0;
     if(events.length === 1) {
       groupWidth = 1;
     }
+    else if(events.length > 2) {
+      // get biggest strong cycle for this component
+      // because that will determine the width
+    }
+
     maxOffset = (1 / groupWidth) - 1;
     _.each(events, function (e) {
       e.width = groupWidth;
@@ -149,29 +174,71 @@
     });
   }
 
+  function sectionStronglyConnectedCycles (cycles) {
+    // remove the edges connecting strongly connected cycles
+    // to the rest of the graph unless:
+    // 1. Its connected to a single node
+    // 2. It's connected to another strongly connected cycle
+    for (var i = 0; i < cycles.length; i++) {
+      var a = cycles[i];
+      console.log(a);
+      _.each(a, function (v) {
+        var edges = g.adj(v);
+        var edgesToDisconnect = _.difference(edges, a);
+        // console.log(v, edges);
+        // console.log('difference', edgesToDisconnect);
+
+        edgesToDisconnect = _.filter(edgesToDisconnect, function (w) {
+          // if w is a single vertex with no other connections
+          if(g.adj(w).length === 1) {
+            return false;
+          }
+          // if w is a member of another strongly connected cycle
+          else if(_.some(cycles, function (cycle) {
+            return _.contains(cycle, w);
+          })) {
+            return false;
+          }
+          return true;
+        });
+
+        if(edgesToDisconnect.length) {
+          _.each(edgesToDisconnect, function (w){
+            g.removeEdge(v, w);
+          });
+        }
+      });
+
+
+    };
+  }
+
   function layOutDay (events) {
     events = preprocess(events);
-    var g = makeGraph(events);
+    g = makeGraph(events);
     console.log(g);
-    window.g = g;
-    // var paths = new Graph.BFSPaths(g, 1);
-    // var paths = new Graph.DFSPaths(g, 1);
-    // console.log(paths.pathTo(7));
-    var cc = new Graph.ConnectedComponents(g);
-    // console.log(cc);
+    // window.g = g;
+
+
+    var cc = new Graph.GraphProcessor(g);
+    console.log(cc);
+    var strongCycles = cc.getLargestStrongCycles();
+    sectionStronglyConnectedCycles(strongCycles);
+
+
+    cc.update(g);
     var components = cc.components();
-    console.log(components);
-    components = _.map(components, function (component) {
-      return g.idsToData(component);
+    _.each(components, function (component) {
+      layoutGroup(component, strongCycles);
     });
-    _.each(components, layoutGroup);
     renderGroup(events);
   }
 
 
   renderCalendarGutter();
   // layOutDay(testEvents);
-  layOutDay(testEvents2);
+  // layOutDay(testEvents2);
+  layOutDay(testEvents3);
 
   function generateTestEvents (n) {
     var events = [];
