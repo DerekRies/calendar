@@ -82,8 +82,9 @@
       calendarItem.className = 'calendar-event';
       calendarItem.innerHTML = '<h2 class="event-title">Sample Item</h2><p class="event-location">Sample Location</p>';
       calendarItem.style.top = (events[i].start * minutesToPixelsRatio) + 'px';
-      calendarItem.style.width = events[i].width * 600 + 'px';
-      calendarItem.style.left = events[i].left + 'px';
+      var width = events[i].width * 600;
+      calendarItem.style.width = width + 'px';
+      calendarItem.style.left = events[i].left * width + 'px';
       var dif = events[i].end - events[i].start;
       // console.log(dif);
       calendarItem.style.height = (dif * minutesToPixelsRatio) + 'px';
@@ -93,97 +94,78 @@
     canvas.appendChild(fragment);
   }
 
-  function buildGraph (events) {
-    var graph = new Graph();
-    for (var i = 0; i < events.length; i++) {
-      graph.addNode(events[i]);
-    };
+
+  function preprocess (events) {
+    var data = _.sortBy(events, function (e) {
+      return e.start;
+    });
+    data = _.each(data, function (e) {
+      e.width = 1;
+      e.left = 0;
+    });
+    return data;
+  }
+
+  function collides (a, b) {
+    if(b.start > a.end || b.end < a.start) {
+      return false;
+    }
+    return true;
+  }
+
+  function makeGraph (events) {
+    var graph = new Graph(events);
+    // collision detection add edges
+    for(var i = 0; i < events.length - 1 ; i++) {
+      for (var j = i + 1; j < events.length; j++) {
+        if(collides(events[i], events[j])) {
+          graph.addEdge(i, j);
+        }
+      };
+    }
     return graph;
   }
 
-  function layoutGroup (node) {
-    var reachableNodes = node.getAllReachableNodes();
-    if(reachableNodes[0].measured) {
-      return;
+  function layoutGroup (events) {
+    // a single connected component of the graph of events
+    // all events in the component will share the same width
+    // width is determined by the size of the
+    var groupWidth = .5;
+    var maxOffset = 0;
+    var offset = 0;
+    if(events.length === 1) {
+      groupWidth = 1;
     }
-    // sort by start time
-    reachableNodes = _.sortBy(reachableNodes, function (node) {
-      return node.data.start;
+    maxOffset = (1 / groupWidth) - 1;
+    _.each(events, function (e) {
+      e.width = groupWidth;
+      e.left = offset;
+      if(offset < maxOffset) {
+        offset++;
+      }
+      else {
+        offset = 0;
+      }
     });
-    var nConnections = 0;
-    var maxConnections = 0;
-    var maxC = [];
-    var width = 1;
-    var offset;
-
-    // find out the most collisions to determine width
-    for(var i = 0; i < reachableNodes.length ;i++) {
-      var sharedNeighbors = reachableNodes[i].sharedNeighbors()
-      nConnections = sharedNeighbors.length + 1;
-      if(nConnections > maxConnections) {
-        maxConnections = nConnections;
-        maxC = sharedNeighbors;
-      }
-    }
-    console.log(maxConnections);
-    console.log(maxC);
-    width = 1 / maxConnections;
-    offset = 600 * width;
-
-    // set the width of all nodes
-    for (var j = reachableNodes.length - 1; j >= 0; j--) {
-      reachableNodes[j].data.width = width;
-      reachableNodes[j].measured = true;
-    };
-
-    // set the left position of all nodes
-    reachableNodes[0].data.left = 0;
-    for (var h = 1; h < reachableNodes.length; h++) {
-      var neighborsData = _.map(reachableNodes[h].neighbors, function (node) {
-        return node.data;
-      });
-      // There's room to put this event on the left
-      // Doesn't take into account room on the left, after the first slot
-      // (the first slot being a left of 0)
-      if(_.some(neighborsData,{'left': 0}) === false) {
-        reachableNodes[h].data.left = 0;
-      }
-      // This node's neighbors are pushing it further to the right
-      else {
-        console.log();
-        var maxOffset = _.max(neighborsData, 'left').left;
-        if(maxOffset + offset <= 600) {
-          reachableNodes[h].data.left = maxOffset + offset;
-        }
-        else{
-          reachableNodes[h].data.left = 0;
-        }
-      }
-    };
-  }
-
-  function layoutPass (graph) {
-    for(var i = 0; i < graph.nodes.length ; i++) {
-      // if no neighbors then its simply 100% width
-      if(graph.nodes[i].neighbors.length === 0){
-        graph.nodes[i].data.width = 1;
-        graph.nodes[i].data.left = 0;
-      }
-      else {
-        layoutGroup(graph.nodes[i]);
-      }
-    }
   }
 
   function layOutDay (events) {
-    _.sortBy(events, function (e) {
-      return e.start;
+    events = preprocess(events);
+    var g = makeGraph(events);
+    console.log(g);
+    window.g = g;
+    // var paths = new Graph.BFSPaths(g, 1);
+    // var paths = new Graph.DFSPaths(g, 1);
+    // console.log(paths.pathTo(7));
+    var cc = new Graph.ConnectedComponents(g);
+    // console.log(cc);
+    var components = cc.components();
+    console.log(components);
+    components = _.map(components, function (component) {
+      return g.idsToData(component);
     });
-    var graph = buildGraph(events);
-    layoutPass(graph);
-    console.log(graph);
+    _.each(components, layoutGroup);
     renderGroup(events);
-    window.g = graph;
   }
 
 
