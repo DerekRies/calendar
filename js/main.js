@@ -159,6 +159,14 @@
     else if(events.length > 2) {
       // get biggest strong cycle for this component
       // because that will determine the width
+      // any of the component vertices in the strong Cycle?
+
+
+      for (var i = 0; i < strongCycles.length; i++) {
+        if (_.intersection(strongCycles[i], component).length > 0) {
+          groupWidth = 1 / strongCycles[i].length;
+        };
+      };
     }
 
     maxOffset = (1 / groupWidth) - 1;
