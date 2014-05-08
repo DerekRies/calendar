@@ -10,3 +10,5 @@ function layOutDayFromLS (key) {
 function saveCurrentEvents (key) {
   localStorage.setItem(key, JSON.stringify(g.vertices));
 }
+
+// layOutDayFromLS('cluster');
