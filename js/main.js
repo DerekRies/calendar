@@ -98,7 +98,7 @@
     for(var i = 0; i < events.length ; i++) {
       var calendarItem = document.createElement('div');
       calendarItem.className = 'calendar-event';
-      calendarItem.innerHTML = '<h2 class="event-title">Sample Item</h2><p class="event-location">Sample Location</p>';
+      calendarItem.innerHTML = '<h2 class="event-title">Sample Item ' + i  + '</h2><p class="event-location">Sample Location</p>';
       calendarItem.style.top = (events[i].start * minutesToPixelsRatio) + 'px';
       var width = events[i].width * 600;
       calendarItem.style.width = width + 'px';
@@ -253,7 +253,7 @@
     events = preprocess(events);
     g = makeGraph(events);
     console.log(g);
-    // window.g = g;
+    window.g = g;
 
 
     var cc = new Graph.GraphProcessor(g);
