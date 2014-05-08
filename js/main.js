@@ -149,7 +149,7 @@
     // all events in the component will share the same width
     // width is determined by the size of the
     var events = g.idsToData(component);
-    console.log(events, component);
+    // console.log(events, component);
     var groupWidth = .5;
     var maxOffset = 0;
     var offset = 0;
@@ -161,10 +161,15 @@
     }
     else if(events.length > 2) {
       // get biggest strong cycle for this component to determine the width
+      strongCycles = _.sortBy(strongCycles, function (c){ return -c.length; });
+      // console.log(strongCycles);
       for (var i = 0; i < strongCycles.length; i++) {
         if (_.intersection(strongCycles[i], component).length > 0) {
           isStrong = true;
+          console.log('Strong Cycle:');
+          console.log(strongCycles[i]);
           groupWidth = 1 / strongCycles[i].length;
+          break;
         };
       };
     }
