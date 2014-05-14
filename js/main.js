@@ -222,7 +222,7 @@
     // 2. It's connected to another strongly connected cycle
     for (var i = 0; i < cycles.length; i++) {
       var a = cycles[i];
-      console.log(a);
+      // console.log(a);
       _.each(a, function (v) {
         var edges = g.adj(v);
         var edgesToDisconnect = _.difference(edges, a);
@@ -270,6 +270,7 @@
     cc.update(g);
     var components = cc.components();
     _.each(components, function (component) {
+      console.log(component);
       layoutGroup(component, strongCycles);
     });
     renderGroup(events);

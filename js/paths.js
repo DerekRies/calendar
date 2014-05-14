@@ -78,11 +78,12 @@
 
   var GraphProcessor = function (graph) {
     // Handles Connectivity, Cycles, and strongly connected cycles
-    this.update(graph);
+    this.update(graph, true);
   };
 
-  GraphProcessor.prototype.update = function(graph) {
+  GraphProcessor.prototype.update = function(graph, cycles) {
     // body...
+    var g = graph;
     this.marked = makeArray(graph.verts(), false);
     this.id = makeArray(graph.verts(), undefined);
     this.edgeTo = makeArray(graph.verts(), undefined);
@@ -104,6 +105,63 @@
     this.cycles = _.filter(this.cycles, function (cycle) {
       return cycle.length > 1;
     });
+
+    function contains (haystack, needles) {
+      return _.every(needles, function (needle) {
+        return _.contains(haystack, needle);
+      });
+    }
+    var selfcycles = this.cycles;
+
+    var combine = function(a, min) {
+        var fn = function(n, src, got, all) {
+            if (n == 0) {
+                if (got.length > 0) {
+                    all[all.length] = got;
+                }
+                return;
+            }
+            for (var j = 0; j < src.length; j++) {
+                fn(n - 1, src.slice(j + 1), got.concat([src[j]]), all);
+            }
+            return;
+        }
+        var all = [];
+        for (var i = min; i < a.length; i++) {
+            fn(i, a, [], all);
+        }
+        all.push(a);
+        return all;
+    }
+
+    function subcycles (cycle) {
+      var combination;
+      var adjacents = [];
+      for (var j = 0; j < cycle.length; j++) {
+        adjacents[j] = g.adj(cycle[j]).concat(cycle[j]);
+      };
+
+      _.each(combine(cycle, 4), function (c) {
+        var count = 0;
+        for (var i = 0; i < cycle.length; i++) {
+          if(contains(adjacents[i], c)) {
+            count++;
+          }
+        };
+        // console.log(c, count);
+        if (count >= c.length) {
+          selfcycles.push(c);
+        };
+      });
+    }
+
+    if(typeof cycles !== 'undefined'){
+      for (var i = this.cycles.length - 1; i >= 0; i--) {
+          if(this.cycles[i].length > 4 && this.cycles[i].length < 7) {
+            subcycles(this.cycles[i]);
+          }
+      };
+    }
   };
 
   GraphProcessor.prototype._dfs = function(g, v) {
