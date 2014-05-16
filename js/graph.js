@@ -53,6 +53,10 @@
     return this.numEdges;
   };
 
+  Graph.prototype.getVertexByNode = function(node) {
+    return this.vertices.indexOf(node);
+  };
+
   Graph.prototype._vertexPairs = function() {
     if(this._vertexPairsCache) {
       console.log('cache hit');

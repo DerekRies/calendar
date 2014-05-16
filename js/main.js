@@ -119,7 +119,7 @@
     });
     data = _.each(data, function (e) {
       e.width = 1;
-      e.left = 0;
+      e.left = -1;
     });
     return data;
   }
@@ -148,26 +148,32 @@
     // a single connected component of the graph of events
     // all events in the component will share the same width
     // width is determined by the size of the
-    var events = g.idsToData(component);
+    // var events = g.idsToData(component);
     // console.log(events, component);
     var groupWidth = .5;
     var maxOffset = 0;
-    var offset = 0;
+    var offset = -1;
     var isStrong = false;
+    var curStrongCycle;
+    var events;
 
     // Sizing
-    if(events.length === 1) {
+    if(component.length === 1) {
       groupWidth = 1;
     }
-    else if(events.length > 2) {
+    else if(component.length > 2) {
       // get biggest strong cycle for this component to determine the width
+      strongCycles = _.sortBy(strongCycles, function (c) {
+        return _.reduce(c, function (sum, num) { return sum + num; });
+      });
       strongCycles = _.sortBy(strongCycles, function (c){ return -c.length; });
-      // console.log(strongCycles);
+      console.log('Sorted Strong Cycles: ', strongCycles);
       for (var i = 0; i < strongCycles.length; i++) {
         if (_.intersection(strongCycles[i], component).length > 0) {
           isStrong = true;
           console.log('Strong Cycle:');
-          console.log(strongCycles[i]);
+          curStrongCycle = strongCycles[i];
+          console.log(curStrongCycle);
           groupWidth = 1 / strongCycles[i].length;
           break;
         };
@@ -201,18 +207,39 @@
       positionNode(component[0], 0);
     }
 
-    _.each(events, function (e) {
+    // Put the strong cycles first so they get laid out from the left
+    component = _.sortBy(component, function (e) {
+      return !_.contains(curStrongCycle, e) ? 1 : 0;
+    });
+    events = g.idsToData(component);
+    console.log(component);
+
+    function openOffset (v) {
+      var adj = g.idsToData(g.adj(v));
+      var offsets = _.map(adj, 'left');
+      // var adj = g.adj(v);
+      console.log('Vertex: ' + v, adj[0].left);
+      console.log('Vertex: ' + v, offsets, maxOffset);
+      for (var o = 0; o <= maxOffset; o++) {
+        if(!_.contains(offsets, o)){
+          console.log('Open Offset: ' + o);
+          return o;
+        }
+      };
+      return 0;
+    }
+
+    _.each(component, function (v) {
+      var e = g.getById(v);
       e.width = groupWidth;
       if(isStrong){
+        // if(offset < maxOffset) { offset++; }
+        // else { offset = openOffset(v); }
+        offset = openOffset(v);
         e.left = offset;
-        if(offset < maxOffset) {
-          offset++;
-        }
-        else {
-          offset = 0;
-        }
       }
     });
+
   }
 
   function sectionStronglyConnectedCycles (cycles) {
@@ -270,7 +297,7 @@
     cc.update(g);
     var components = cc.components();
     _.each(components, function (component) {
-      console.log(component);
+      // console.log(component);
       layoutGroup(component, strongCycles);
     });
     renderGroup(events);
