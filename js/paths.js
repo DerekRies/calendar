@@ -98,10 +98,6 @@
       }
     };
 
-    // TODO:
-    //
-    // Implement an alternative method of finding all the cycles in the graph
-    // The current method misses several
     this.cycles = _.filter(this.cycles, function (cycle) {
       return cycle.length > 1;
     });

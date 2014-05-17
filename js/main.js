@@ -7,6 +7,14 @@
     {start: 610, end: 670},
   ];
 
+  var testEvents4 = [
+    {start: 30, end: 150},
+    {start: 250, end: 400},
+    {start: 270, end: 330},
+    {start: 280, end: 390},
+    {start: 370, end: 430},
+  ];
+
   var testEvents3 = [
     {start: 30, end: 400},
     {start: 50, end: 400},
@@ -184,18 +192,14 @@
     maxOffset = (1 / groupWidth) - 1;
     var checked = [];
 
+    // Need to make sure disconnected nodes don't end up overlapping.
     function positionNode (vertex, offset) {
       checked.push(vertex);
       var node = g.getById(vertex);
       var adj = g.adj(vertex);
       var newOffset = offset;
+      offset = openOffset(vertex);
       node.left = offset;
-      if(offset < maxOffset){
-        newOffset++;
-      }
-      else {
-        newOffset = 0;
-      }
       _.each(adj, function (v) {
         if(!_.contains(checked, v)){
           positionNode(v, newOffset);
@@ -218,8 +222,10 @@
       var adj = g.idsToData(g.adj(v));
       var offsets = _.map(adj, 'left');
       // var adj = g.adj(v);
-      console.log('Vertex: ' + v, adj[0].left);
       console.log('Vertex: ' + v, offsets, maxOffset);
+      if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
+        return offsets[0] - 1;
+      }
       for (var o = 0; o <= maxOffset; o++) {
         if(!_.contains(offsets, o)){
           console.log('Open Offset: ' + o);
@@ -307,7 +313,8 @@
   renderCalendarGutter();
   // layOutDay(testEvents);
   // layOutDay(testEvents2);
-  layOutDay(testEvents3);
+  // layOutDay(testEvents3);
+  layOutDay(testEvents4);
 
   function generateTestEvents (n) {
     var events = [];
