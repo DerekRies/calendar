@@ -62,6 +62,7 @@
     {start: 670, end: 720},
   ];
 
+
   var canvas = document.getElementById('calendar-canvas'),
       gutter = document.getElementById('calendar-gutter'),
       minutesToPixelsRatio = 1,
@@ -362,6 +363,18 @@
     };
   }
 
+  /*
+    General Algorithm Overview
+    1. Construct a graph where events are vertices and collisions are edges
+    2. Find all the strong cycles in the graph. (cycles where every vertex shares
+    an edge with every other vertex)
+    3. Disconnect every strong cycle from their components under certain restrictions
+    (shown in the sectionStronglyConnectedCycles method). The disconnection is done as a
+    way of making sure that an events visual representation can be expanded where possible.
+    4. Now find all the new connected components
+    5. For every connected component set the group width to be the size of the strong cycle
+    and then position each node where there is an open spot.
+  */
   function layOutDay (events) {
     events = preprocess(events);
     g = makeGraph(events);
