@@ -166,6 +166,7 @@
     var curStrongCycle;
     var events;
     var reset = false;
+    var delayedNodesForLayout = [];
 
     // Sizing
     if(typeof explicitWidth !== 'undefined') {
@@ -198,6 +199,32 @@
     maxOffset = (1 / groupWidth) - 1;
     var checked = [];
 
+    function openOffset (v) {
+      var adj = g.idsToData(g.adj(v));
+      var offsets = _.map(adj, 'left');
+      // var adj = g.adj(v);
+      // console.log('Vertex: ' + v, offsets, maxOffset);
+      if(v === 5) {
+        console.log(offsets);
+      }
+
+      if(offsets.length === 1 && offsets[0] === -1) {
+        // dont know enough about this node to currently lay it out
+        delayedNodesForLayout.push(v);
+      }
+
+      if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
+        return offsets[0] - 1;
+      }
+      for (var o = 0; o <= maxOffset; o++) {
+        if(!_.contains(offsets, o)){
+          // console.log('Open Offset: ' + o);
+          return o;
+        }
+      };
+      return -1;
+    }
+
     // Need to make sure disconnected nodes don't end up overlapping.
     function positionNode (vertex, offset) {
       checked.push(vertex);
@@ -226,18 +253,23 @@
 
     if(!isStrong){
       // if this component contains a node that was disconnected
+      // then make sure we start positioning with the node that
+      // disconnected, and put it in a spot that wont collide
+      // with its previously connected node in another component.
       var disconnected = containsDisconnected();
       if(disconnected !== false){
         console.log('disconnected nodes', disconnected);
-        var startOffset = g.getById(disconnected[1]).left;
-        startOffset = Number(!startOffset);
+        var disconnectedNeighbor = g.getById(disconnected[1]);
+        var startOffset = disconnectedNeighbor.left;
+        startOffset = (startOffset + 1) / (1 / disconnectedNeighbor.width);
+        startOffset = startOffset < 0.5 ? 1 : 0;
+        // startOffset = Number(!startOffset);
         console.log(startOffset);
         positionNode(disconnected[0], startOffset);
       }
       else {
         positionNode(component[0], 0);
       }
-        // positionNode(component[0], 0);
     }
 
     // Put the strong cycles first so they get laid out from the left
@@ -246,34 +278,6 @@
     });
     events = g.idsToData(component);
     // console.log(component);
-
-    var delayedNodesForLayout = [];
-
-    function openOffset (v) {
-      var adj = g.idsToData(g.adj(v));
-      var offsets = _.map(adj, 'left');
-      // var adj = g.adj(v);
-      // console.log('Vertex: ' + v, offsets, maxOffset);
-      if(v === 5) {
-        console.log(offsets);
-      }
-
-      if(offsets.length === 1 && offsets[0] === -1) {
-        // dont know enough about this node to currently lay it out
-        delayedNodesForLayout.push(v);
-      }
-
-      if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
-        return offsets[0] - 1;
-      }
-      for (var o = 0; o <= maxOffset; o++) {
-        if(!_.contains(offsets, o)){
-          // console.log('Open Offset: ' + o);
-          return o;
-        }
-      };
-      return -1;
-    }
 
     function pos (v) {
       var e = g.getById(v);
@@ -313,23 +317,13 @@
   }
 
   function sectionStronglyConnectedCycles (cycles) {
-    // remove the edges connecting strongly connected cycles
-    // to the rest of the graph unless:
-    // 1. Its connected to a single node
-    // 2. It's connected to another strongly connected cycle
-
+    // remove the edges connecting strongly connected cycles to the rest of the graph
     for (var i = 0; i < cycles.length; i++) {
       var a = cycles[i];
       // console.log(a);
       _.each(a, function (v) {
         var edges = g.adj(v);
         var edgesToDisconnect = _.difference(edges, a);
-
-        // console.group();
-        // console.log(a);
-        // console.log(v, edges);
-        // console.log('difference', edgesToDisconnect);
-        // console.groupEnd();
 
         edgesToDisconnect = _.filter(edgesToDisconnect, function (w) {
           // if w is a single vertex with no other connections
@@ -358,8 +352,6 @@
           });
         }
       });
-
-
     };
   }
 
@@ -406,35 +398,15 @@
 
 
   renderCalendarGutter();
-  // layOutDay(testEvents);
+  layOutDay(testEvents);
   // layOutDay(testEvents2);
-  // layOutDay(testEvents3);
-  layOutDay(testEvents4);
+  // layOutDay(testEvents4);
+  // layOutDay(testEvents4);
 
-  function generateTestEvents (n) {
-    var events = [];
-    if(typeof n === 'undefined') {
-      n = Math.floor(Math.random()*100);
-    }
 
-    function generateEvent () {
-      var e = {};
-      var height = Math.random() * 100 + 50;
-      e.start = Math.random() * (720 - height);
-      e.end =  height + e.start;
-      return e;
-    }
-
-    for (var i = 0; i < n; i++) {
-      events.push(generateEvent());
-    }
-
-    return events;
-  }
 
   // layOutDay(generateTestEvents(10));
 
   window.layOutDay = layOutDay;
-  window.generateTestEvents = generateTestEvents;
 
 }());
