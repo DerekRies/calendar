@@ -124,8 +124,8 @@
 
   GraphProcessor.prototype.getStrongCycles = function() {
     var strongCycles = [];
-    console.log('normal cycles');
-    console.log(this.cycles);
+    // console.log('normal cycles');
+    // console.log(this.cycles);
     _.each(this.cycles, function (cycle) {
       if(this.isStrongCycle(cycle)){
         strongCycles.push(cycle);
@@ -149,8 +149,8 @@
       return false;
     }
     var strongCycles = this.getStrongCycles();
-    console.log('first strong cycles');
-    console.log(strongCycles);
+    // console.log('first strong cycles');
+    // console.log(strongCycles);
     var cs = [];
     for (var i = 0; i < strongCycles.length; i++) {
       var a = strongCycles[i];

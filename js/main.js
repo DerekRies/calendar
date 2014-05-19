@@ -168,7 +168,7 @@
     // all events in the component will share the same width
     // width is determined by the size of the
     // var events = g.idsToData(component);
-    console.log(component);
+    // console.log(component);
     var groupWidth = .5;
     var maxOffset = 0;
     var offset = -1;
@@ -192,7 +192,7 @@
         return _.reduce(c, function (sum, num) { return sum + num; });
       });
       strongCycles = _.sortBy(strongCycles, function (c){ return -c.length; });
-      console.log('Sorted Strong Cycles: ', strongCycles);
+      // console.log('Sorted Strong Cycles: ', strongCycles);
       for (var i = 0; i < strongCycles.length; i++) {
         if (_.intersection(strongCycles[i], component).length > 0) {
           isStrong = true;
@@ -220,11 +220,11 @@
         if(disconnected !== false) {
           var disconnectedNeighbor = g.getById(disconnected);
           var offset = disconnectedNeighbor.left;
-          console.log(v + ' -> Disconnected Neighbor: ' + disconnectedNeighbor.left);
+          // console.log(v + ' -> Disconnected Neighbor: ' + disconnectedNeighbor.left);
           if(offset !== -1){
             offset = (offset + 1) / (1 / disconnectedNeighbor.width);
             offset = offset <= 0.5 ? maxOffset : 0;
-            console.log(offset);
+            // console.log(offset);
             return offset;
           }
         }
@@ -399,9 +399,9 @@
 
 
     var cc = new Graph.GraphProcessor(g);
-    console.log(cc);
+    // console.log(cc);
     var strongCycles = cc.getLargestStrongCycles();
-    console.log(strongCycles);
+    // console.log(strongCycles);
     sectionStronglyConnectedCycles(strongCycles);
 
 
