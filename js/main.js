@@ -5,6 +5,7 @@
     {start: 540, end: 600},
     {start: 560, end: 620},
     {start: 610, end: 670},
+    {start: 900, end: 930},
   ];
 
   var testEvents4 = [
@@ -125,6 +126,15 @@
   function preprocess (events) {
     var data = _.sortBy(events, function (e) {
       return e.start;
+    });
+    data = _.filter(data, function (d) {
+      if(d.start > 720 || d.end > 720) {
+        return false;
+      }
+      if(d.start < 0 || d.end < 0){
+        return false;
+      }
+      return true;
     });
     data = _.each(data, function (e) {
       e.width = 1;
@@ -414,8 +424,8 @@
   renderCalendarGutter();
   layOutDay(testEvents);
   // layOutDay(testEvents2);
-  // layOutDay(testEvents4);
-  // layOutDay(testEvents4);
+  // layOutDay(testEvents3);
+  // layOutDay(testEvents5);
 
 
 
