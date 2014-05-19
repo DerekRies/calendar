@@ -179,9 +179,9 @@
       for (var i = 0; i < strongCycles.length; i++) {
         if (_.intersection(strongCycles[i], component).length > 0) {
           isStrong = true;
-          console.log('Strong Cycle:');
+          // console.log('Strong Cycle:');
           curStrongCycle = strongCycles[i];
-          console.log(curStrongCycle);
+          // console.log(curStrongCycle);
           groupWidth = 1 / strongCycles[i].length;
           break;
         };
@@ -222,13 +222,13 @@
       var adj = g.idsToData(g.adj(v));
       var offsets = _.map(adj, 'left');
       // var adj = g.adj(v);
-      console.log('Vertex: ' + v, offsets, maxOffset);
+      // console.log('Vertex: ' + v, offsets, maxOffset);
       if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
         return offsets[0] - 1;
       }
       for (var o = 0; o <= maxOffset; o++) {
         if(!_.contains(offsets, o)){
-          console.log('Open Offset: ' + o);
+          // console.log('Open Offset: ' + o);
           return o;
         }
       };
@@ -253,24 +253,36 @@
     // to the rest of the graph unless:
     // 1. Its connected to a single node
     // 2. It's connected to another strongly connected cycle
+
     for (var i = 0; i < cycles.length; i++) {
       var a = cycles[i];
       // console.log(a);
       _.each(a, function (v) {
         var edges = g.adj(v);
         var edgesToDisconnect = _.difference(edges, a);
+
+        // console.group();
+        // console.log(a);
         // console.log(v, edges);
         // console.log('difference', edgesToDisconnect);
+        // console.groupEnd();
 
         edgesToDisconnect = _.filter(edgesToDisconnect, function (w) {
           // if w is a single vertex with no other connections
           if(g.adj(w).length === 1) {
+            // console.log('vertex ' + w + ': is a single vertex');
+            return false;
+          }
+          // if w is a vertex with at least two connections into this cycle
+          else if(_.intersection(a, g.adj(w)).length >= 2) {
+            // console.log('vertex ' + w + ': has two connections into cycle');
             return false;
           }
           // if w is a member of another strongly connected cycle
           else if(_.some(cycles, function (cycle) {
             return _.contains(cycle, w);
           })) {
+            // console.log('vertex ' + w + ': is a member of another strong cycle');
             return false;
           }
           return true;
@@ -297,6 +309,7 @@
     var cc = new Graph.GraphProcessor(g);
     console.log(cc);
     var strongCycles = cc.getLargestStrongCycles();
+    console.log(strongCycles);
     sectionStronglyConnectedCycles(strongCycles);
 
 
@@ -313,8 +326,8 @@
   renderCalendarGutter();
   // layOutDay(testEvents);
   // layOutDay(testEvents2);
-  // layOutDay(testEvents3);
-  layOutDay(testEvents4);
+  layOutDay(testEvents3);
+  // layOutDay(testEvents4);
 
   function generateTestEvents (n) {
     var events = [];
