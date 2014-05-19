@@ -199,13 +199,25 @@
     maxOffset = (1 / groupWidth) - 1;
     var checked = [];
 
-    function openOffset (v) {
+    function openOffset (v, checkForDisconnects) {
       var adj = g.idsToData(g.adj(v));
       var offsets = _.map(adj, 'left');
       // var adj = g.adj(v);
       // console.log('Vertex: ' + v, offsets, maxOffset);
-      if(v === 5) {
-        console.log(offsets);
+
+      if(checkForDisconnects){
+        var disconnected = g.isDisconnected(v);
+        if(disconnected !== false) {
+          var disconnectedNeighbor = g.getById(disconnected);
+          var offset = disconnectedNeighbor.left;
+          console.log(v + ' -> Disconnected Neighbor: ' + disconnectedNeighbor.left);
+          if(offset !== -1){
+            offset = (offset + 1) / (1 / disconnectedNeighbor.width);
+            offset = offset <= 0.5 ? maxOffset : 0;
+            console.log(offset);
+            return offset;
+          }
+        }
       }
 
       if(offsets.length === 1 && offsets[0] === -1) {
@@ -213,13 +225,18 @@
         delayedNodesForLayout.push(v);
       }
 
-      if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
-        return offsets[0] - 1;
-      }
+      // if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
+      //   return offsets[0] - 1;
+      // }
       for (var o = 0; o <= maxOffset; o++) {
         if(!_.contains(offsets, o)){
-          // console.log('Open Offset: ' + o);
-          return o;
+          // and this o is within 1 of another offset
+          var distances = _.map(offsets, function (o1) {
+            return Math.abs(o1 - o);
+          });
+          if(_.contains(distances, 1)){
+            return o;
+          }
         }
       };
       return -1;
@@ -262,7 +279,7 @@
         var disconnectedNeighbor = g.getById(disconnected[1]);
         var startOffset = disconnectedNeighbor.left;
         startOffset = (startOffset + 1) / (1 / disconnectedNeighbor.width);
-        startOffset = startOffset < 0.5 ? 1 : 0;
+        startOffset = startOffset < 0.5 ? maxOffset : 0;
         // startOffset = Number(!startOffset);
         console.log(startOffset);
         positionNode(disconnected[0], startOffset);
@@ -285,10 +302,7 @@
       if(isStrong){
         // if(offset < maxOffset) { offset++; }
         // else { offset = openOffset(v); }
-        offset = openOffset(v);
-        if(v === 5) {
-          console.log('Vertex 5: ' + offset);
-        }
+        offset = openOffset(v, true);
         if(offset === -1) {
           reset = true;
           console.log('redo group layout with max offset of ' + (maxOffset + 1));

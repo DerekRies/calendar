@@ -24,6 +24,17 @@
     this.disconnections.push([v,w]);
   };
 
+  Graph.prototype.isDisconnected = function(v) {
+    for(var i = 0; i < this.disconnections.length ; i++) {
+      for (var j = 0; j < 2; j++) {
+        if(this.disconnections[i][j] === v) {
+          return this.disconnections[i][Number(!j)];
+        }
+      };
+    }
+    return false
+  };
+
   Graph.prototype.adj = function(v) {
     // returns all vertices adjacent to v
     return this.adjacencyList[v];
