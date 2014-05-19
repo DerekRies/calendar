@@ -152,21 +152,26 @@
     return graph;
   }
 
-  function layoutGroup (component, strongCycles) {
+  function layoutGroup (component, strongCycles, explicitWidth) {
     // a single connected component of the graph of events
     // all events in the component will share the same width
     // width is determined by the size of the
     // var events = g.idsToData(component);
-    // console.log(events, component);
+    console.log(component);
     var groupWidth = .5;
     var maxOffset = 0;
     var offset = -1;
     var isStrong = false;
     var curStrongCycle;
     var events;
+    var reset = false;
 
     // Sizing
-    if(component.length === 1) {
+    if(typeof explicitWidth !== 'undefined') {
+      groupWidth = 1 / (explicitWidth + 1);
+      isStrong = true;
+    }
+    else if(component.length === 1) {
       groupWidth = 1;
     }
     else if(component.length > 2) {
@@ -197,18 +202,41 @@
       checked.push(vertex);
       var node = g.getById(vertex);
       var adj = g.adj(vertex);
-      var newOffset = offset;
-      offset = openOffset(vertex);
       node.left = offset;
       _.each(adj, function (v) {
         if(!_.contains(checked, v)){
+          var newOffset = openOffset(v);
           positionNode(v, newOffset);
         }
       });
     }
 
+    function containsDisconnected () {
+      for (var i = 0; i < g.disconnections.length; i++) {
+        var pair = g.disconnections[i];
+        for (var j = 0; j < 2; j++) {
+          if(_.contains(component, pair[j])){
+            return [ pair[j], pair[Number(!j)] ];
+          }
+        };
+      };
+      return false;
+    }
+
     if(!isStrong){
-      positionNode(component[0], 0);
+      // if this component contains a node that was disconnected
+      var disconnected = containsDisconnected();
+      if(disconnected !== false){
+        console.log('disconnected nodes', disconnected);
+        var startOffset = g.getById(disconnected[1]).left;
+        startOffset = Number(!startOffset);
+        console.log(startOffset);
+        positionNode(disconnected[0], startOffset);
+      }
+      else {
+        positionNode(component[0], 0);
+      }
+        // positionNode(component[0], 0);
     }
 
     // Put the strong cycles first so they get laid out from the left
@@ -216,13 +244,24 @@
       return !_.contains(curStrongCycle, e) ? 1 : 0;
     });
     events = g.idsToData(component);
-    console.log(component);
+    // console.log(component);
+
+    var delayedNodesForLayout = [];
 
     function openOffset (v) {
       var adj = g.idsToData(g.adj(v));
       var offsets = _.map(adj, 'left');
       // var adj = g.adj(v);
       // console.log('Vertex: ' + v, offsets, maxOffset);
+      if(v === 5) {
+        console.log(offsets);
+      }
+
+      if(offsets.length === 1 && offsets[0] === -1) {
+        // dont know enough about this node to currently lay it out
+        delayedNodesForLayout.push(v);
+      }
+
       if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
         return offsets[0] - 1;
       }
@@ -232,19 +271,43 @@
           return o;
         }
       };
-      return 0;
+      return -1;
     }
 
-    _.each(component, function (v) {
+    function pos (v) {
       var e = g.getById(v);
       e.width = groupWidth;
       if(isStrong){
         // if(offset < maxOffset) { offset++; }
         // else { offset = openOffset(v); }
         offset = openOffset(v);
+        if(v === 5) {
+          console.log('Vertex 5: ' + offset);
+        }
+        if(offset === -1) {
+          reset = true;
+          console.log('redo group layout with max offset of ' + (maxOffset + 1));
+          return;
+          // offset = 0;
+        }
         e.left = offset;
       }
-    });
+    }
+
+    _.each(component, pos);
+    _.each(delayedNodesForLayout, pos);
+
+    // Nasty hack
+    // When the graph processor misses a strong cycle and there
+    // are no open offsets for a node in the component, it is known
+    // that this unfitting node is a part of the cycle, and we must increment
+    // the total number of offsets by 1 to make it fit.
+    if(reset) {
+      _.each(events, function (e) {
+        e.left = -1;
+      });
+      layoutGroup(component, strongCycles, maxOffset + 1);
+    }
 
   }
 
@@ -315,8 +378,14 @@
 
     cc.update(g);
     var components = cc.components();
+
+    // strong cycle components need to be laid out first
+    components = _.sortBy(components, function (comp) {
+      return -_.max(_.map(strongCycles, function (cycle) {
+        return _.intersection(cycle, comp).length;
+      }));
+    });
     _.each(components, function (component) {
-      // console.log(component);
       layoutGroup(component, strongCycles);
     });
     renderGroup(events);
@@ -326,8 +395,8 @@
   renderCalendarGutter();
   // layOutDay(testEvents);
   // layOutDay(testEvents2);
-  layOutDay(testEvents3);
-  // layOutDay(testEvents4);
+  // layOutDay(testEvents3);
+  layOutDay(testEvents4);
 
   function generateTestEvents (n) {
     var events = [];

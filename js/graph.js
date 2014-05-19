@@ -4,6 +4,7 @@
     // Takes an array, data, that will be the list of vertices
     // in the graph
     this.vertices = data;
+    this.disconnections = [];
     this.numEdges = 0;
     this.adjacencyList = Array.apply(null, Array(data.length)).map(function () {return []; });
   };
@@ -20,6 +21,7 @@
     console.log('disconnect: ' + v + '-' + w);
     _.remove(this.adjacencyList[v], function (n) { return n === w; });
     _.remove(this.adjacencyList[w], function (n) { return n === v; });
+    this.disconnections.push([v,w]);
   };
 
   Graph.prototype.adj = function(v) {
