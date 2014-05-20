@@ -221,15 +221,10 @@
       var offsets = _.map(adj, 'left');
 
       if(checkForDisconnects){
-        // console.log(v);
         var disconnected = g.isDisconnected(v);
         if(disconnected !== false) {
           offset = leftOrRight(disconnected);
-          // var disconnectedNeighbor = g.getById(disconnected);
-          // var offset = disconnectedNeighbor.left;
-          // // console.log(v + ' -> Disconnected Neighbor: ' + disconnectedNeighbor.left);
           if(offset !== -1){
-
             // In some cases (multiple cycles in the same component)
             // some nodes can be disconnected and then when the checkForDisconnects
             // is reached in openOffset it will return an offset that might already
