@@ -229,10 +229,17 @@
           // var offset = disconnectedNeighbor.left;
           // // console.log(v + ' -> Disconnected Neighbor: ' + disconnectedNeighbor.left);
           if(offset !== -1){
-            // offset = (offset + 1) / (1 / disconnectedNeighbor.width);
-            // offset = offset <= 0.5 ? maxOffset : 0;
-            // console.log(offset);
-            return offset;
+
+            // In some cases (multiple cycles in the same component)
+            // some nodes can be disconnected and then when the checkForDisconnects
+            // is reached in openOffset it will return an offset that might already
+            // be one of this nodes neighbors offsets.
+            if (_.contains(offsets, offset)) {
+              offsets.push(g.getById(disconnected).left);
+            }
+            else {
+              return offset;
+            }
           }
         }
       }
@@ -248,6 +255,8 @@
           // problem occurs when a disconnected node is placed in the middle
           // because then a left or right shift in the layout of the other
           // disconnected node in the pair can't avoid this one
+          // so if it is a disconnected node, just place it as far left as
+          // is possible
           if(g.isDisconnected(v)) {
             return o;
           }
@@ -258,7 +267,6 @@
           if(_.contains(distances, 1)){
             return o;
           }
-          // return o;
         }
       };
       return -1;
@@ -426,10 +434,10 @@
 
 
   renderCalendarGutter();
-  // layOutDay(testEvents);
-  layOutDay(testEvents2);
+  layOutDay(testEvents);
+  // layOutDay(testEvents2);
   // layOutDay(testEvents3);
-  // layOutDay(testEvents5);
+  // layOutDay(testEvents4);
 
 
 

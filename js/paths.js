@@ -88,7 +88,7 @@
     // Hack Solution
     // Finds some of the smaller subcycles that get missed by the dfs
     // and may contain strong cycles in later steps of the algorithm
-    if(typeof cycles !== 'undefined'){
+    if(typeof cycles !== 'undefined' && graph.vertices.length < 50){
       for (var i = this.cycles.length - 1; i >= 0; i--) {
           if(this.cycles[i].length > 4 && this.cycles[i].length < 7) {
             subcycles(this.cycles[i]);
