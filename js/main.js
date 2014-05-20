@@ -168,7 +168,7 @@
     // all events in the component will share the same width
     // width is determined by the size of the
     // var events = g.idsToData(component);
-    // console.log(component);
+    console.log(component);
     var groupWidth = .5;
     var maxOffset = 0;
     var offset = -1;
@@ -192,13 +192,10 @@
         return _.reduce(c, function (sum, num) { return sum + num; });
       });
       strongCycles = _.sortBy(strongCycles, function (c){ return -c.length; });
-      // console.log('Sorted Strong Cycles: ', strongCycles);
       for (var i = 0; i < strongCycles.length; i++) {
         if (_.intersection(strongCycles[i], component).length > 0) {
           isStrong = true;
-          // console.log('Strong Cycle:');
           curStrongCycle = strongCycles[i];
-          // console.log(curStrongCycle);
           groupWidth = 1 / strongCycles[i].length;
           break;
         };
@@ -209,21 +206,31 @@
     maxOffset = (1 / groupWidth) - 1;
     var checked = [];
 
+    function leftOrRight (neighborVertex) {
+      var neighbor = g.getById(neighborVertex);
+      var offset = neighbor.left;
+      if(offset !== -1) {
+        offset = (offset + 1) / (1 / neighbor.width);
+        offset = offset <= 0.5 ? maxOffset : 0;
+      }
+      return offset;
+    }
+
     function openOffset (v, checkForDisconnects) {
       var adj = g.idsToData(g.adj(v));
       var offsets = _.map(adj, 'left');
-      // var adj = g.adj(v);
-      // console.log('Vertex: ' + v, offsets, maxOffset);
 
       if(checkForDisconnects){
+        // console.log(v);
         var disconnected = g.isDisconnected(v);
         if(disconnected !== false) {
-          var disconnectedNeighbor = g.getById(disconnected);
-          var offset = disconnectedNeighbor.left;
-          // console.log(v + ' -> Disconnected Neighbor: ' + disconnectedNeighbor.left);
+          offset = leftOrRight(disconnected);
+          // var disconnectedNeighbor = g.getById(disconnected);
+          // var offset = disconnectedNeighbor.left;
+          // // console.log(v + ' -> Disconnected Neighbor: ' + disconnectedNeighbor.left);
           if(offset !== -1){
-            offset = (offset + 1) / (1 / disconnectedNeighbor.width);
-            offset = offset <= 0.5 ? maxOffset : 0;
+            // offset = (offset + 1) / (1 / disconnectedNeighbor.width);
+            // offset = offset <= 0.5 ? maxOffset : 0;
             // console.log(offset);
             return offset;
           }
@@ -235,18 +242,23 @@
         delayedNodesForLayout.push(v);
       }
 
-      // if(offsets.length < 2 && offsets[0] !== 0 && offsets[0] !== -1) {
-      //   return offsets[0] - 1;
-      // }
       for (var o = 0; o <= maxOffset; o++) {
         if(!_.contains(offsets, o)){
           // and this o is within 1 of another offset
+          // problem occurs when a disconnected node is placed in the middle
+          // because then a left or right shift in the layout of the other
+          // disconnected node in the pair can't avoid this one
+          if(g.isDisconnected(v)) {
+            return o;
+          }
+
           var distances = _.map(offsets, function (o1) {
             return Math.abs(o1 - o);
           });
           if(_.contains(distances, 1)){
             return o;
           }
+          // return o;
         }
       };
       return -1;
@@ -304,20 +316,16 @@
       return !_.contains(curStrongCycle, e) ? 1 : 0;
     });
     events = g.idsToData(component);
-    // console.log(component);
 
     function pos (v) {
       var e = g.getById(v);
       e.width = groupWidth;
       if(isStrong){
-        // if(offset < maxOffset) { offset++; }
-        // else { offset = openOffset(v); }
         offset = openOffset(v, true);
         if(offset === -1) {
           reset = true;
           console.log('redo group layout with max offset of ' + (maxOffset + 1));
           return;
-          // offset = 0;
         }
         e.left = offset;
       }
@@ -326,7 +334,7 @@
     _.each(component, pos);
     _.each(delayedNodesForLayout, pos);
 
-    // Nasty hack
+    // Hack Solution
     // When the graph processor misses a strong cycle and there
     // are no open offsets for a node in the component, it is known
     // that this unfitting node is a part of the cycle, and we must increment
@@ -342,9 +350,10 @@
 
   function sectionStronglyConnectedCycles (cycles) {
     // remove the edges connecting strongly connected cycles to the rest of the graph
+    // so that some components can expand their width to take up the available room
     for (var i = 0; i < cycles.length; i++) {
       var a = cycles[i];
-      // console.log(a);
+      console.log('section: ', a);
       _.each(a, function (v) {
         var edges = g.adj(v);
         var edgesToDisconnect = _.difference(edges, a);
@@ -357,14 +366,12 @@
           }
           // if w is a vertex with at least two connections into this cycle
           else if(_.intersection(a, g.adj(w)).length >= 2) {
-            // console.log('vertex ' + w + ': has two connections into cycle');
             return false;
           }
           // if w is a member of another strongly connected cycle
           else if(_.some(cycles, function (cycle) {
             return _.contains(cycle, w);
           })) {
-            // console.log('vertex ' + w + ': is a member of another strong cycle');
             return false;
           }
           return true;
@@ -399,11 +406,8 @@
 
 
     var cc = new Graph.GraphProcessor(g);
-    // console.log(cc);
     var strongCycles = cc.getLargestStrongCycles();
-    // console.log(strongCycles);
     sectionStronglyConnectedCycles(strongCycles);
-
 
     cc.update(g);
     var components = cc.components();
@@ -422,8 +426,8 @@
 
 
   renderCalendarGutter();
-  layOutDay(testEvents);
-  // layOutDay(testEvents2);
+  // layOutDay(testEvents);
+  layOutDay(testEvents2);
   // layOutDay(testEvents3);
   // layOutDay(testEvents5);
 
