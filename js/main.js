@@ -221,6 +221,7 @@
       var offsets = _.map(adj, 'left');
 
       if(checkForDisconnects){
+        console.log(v);
         var disconnected = g.isDisconnected(v);
         if(disconnected !== false) {
           offset = leftOrRight(disconnected);
@@ -244,6 +245,14 @@
         delayedNodesForLayout.push(v);
       }
 
+      function inMiddle(offset) {
+        if((maxOffset + 1) % 2 === 0) {
+          return true;
+        }
+        return maxOffset / 2 === offset;
+      }
+
+      console.log(v, offsets);
       for (var o = 0; o <= maxOffset; o++) {
         if(!_.contains(offsets, o)){
           // and this o is within 1 of another offset
@@ -253,7 +262,12 @@
           // so if it is a disconnected node, just place it as far left as
           // is possible
           if(g.isDisconnected(v)) {
-            return o;
+            if (inMiddle(o)) {
+              continue;
+            }
+            else {
+              return o;
+            }
           }
 
           var distances = _.map(offsets, function (o1) {
@@ -429,10 +443,10 @@
 
 
   renderCalendarGutter();
-  layOutDay(testEvents);
+  // layOutDay(testEvents);
   // layOutDay(testEvents2);
   // layOutDay(testEvents3);
-  // layOutDay(testEvents4);
+  layOutDay(testEvents4);
 
 
 
