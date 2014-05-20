@@ -245,11 +245,11 @@
         delayedNodesForLayout.push(v);
       }
 
-      function inMiddle(offset) {
+      function notInMiddle(offset) {
         if((maxOffset + 1) % 2 === 0) {
           return true;
         }
-        return maxOffset / 2 === offset;
+        return maxOffset / 2 !== offset;
       }
 
       console.log(v, offsets);
@@ -262,11 +262,11 @@
           // so if it is a disconnected node, just place it as far left as
           // is possible
           if(g.isDisconnected(v)) {
-            if (inMiddle(o)) {
-              continue;
+            if (notInMiddle(o)) {
+              return o;
             }
             else {
-              return o;
+              continue;
             }
           }
 
